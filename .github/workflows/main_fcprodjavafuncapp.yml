@@ -17,15 +17,18 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
 
       - name: Setup Java Sdk ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v1
-        with:
-            java-version: ${{ env.JAVA_VERSION }}
+        with: |+
+          java-version: ${{ env.JAVA_VERSION }}
 
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
@@ -34,6 +37,13 @@ jobs:
           mvn clean package
           popd
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EF0CF9377D004714B28A4E411B7473CD }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A57B805D43F245A8B714021A779FE8A8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0B1381B514374EDF825B59EEBFD88216 }}
+
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
@@ -42,6 +52,4 @@ jobs:
           slot-name: 'Production'
           package: '${{ env.PACKAGE_DIRECTORY }}'
           respect-pom-xml: true
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FE2970B568844EAEA7139CCBA2B0BE7E }}
-          sku: 'flexconsumption'
-        
+          
