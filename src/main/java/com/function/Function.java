@@ -9,6 +9,7 @@ import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.functions.annotation.FunctionName;
 import com.microsoft.azure.functions.annotation.HttpTrigger;
 
+import java.util.Map;
 import java.util.Optional;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,8 +77,14 @@ public class Function {
     private String RunCommand(String command) {
         StringBuilder output = new StringBuilder();
         Process process = null;
+        ProcessBuilder processBuilder = null;
+        Map<String, String> environment = null;
         try {
-            process = new ProcessBuilder("bash", "-c", command).start();
+            processBuilder = new ProcessBuilder("bash", "-c", command);
+            environment = processBuilder.environment();
+            environment.putAll(System.getenv());
+            process = processBuilder.start();
+
             boolean finished = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
             if (finished) {
             java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
