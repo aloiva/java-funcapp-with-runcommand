@@ -66,7 +66,7 @@ public class Function {
             String currentTime = java.time.LocalDateTime.now().toString();
             String currentZone = java.time.ZoneId.systemDefault().toString();
             return request.createResponseBuilder(HttpStatus.OK)
-                .body("Executed trigger at time " + currentTime + ", timezone: " + currentZone)
+                .body("Executed trigger at time " + currentTime + ", timezone: " + currentZone + ".\nTZ: " + System.getenv("TZ"))
                 .build();
         } else {
             return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + name).build();
