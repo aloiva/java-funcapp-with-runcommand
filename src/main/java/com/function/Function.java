@@ -63,14 +63,14 @@ public class Function {
             return request.createResponseBuilder(HttpStatus.OK).body(RunCommand(query)).build();
         }
 
-        if (name == null) {
+        if (name != null) {
+            return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + name).build();
+        } else {
             String currentTime = java.time.LocalDateTime.now().toString();
             String currentZone = java.time.ZoneId.systemDefault().toString();
             return request.createResponseBuilder(HttpStatus.OK)
                 .body("Executed trigger at time " + currentTime + ", timezone: " + currentZone + ".\nTZ: " + System.getenv("TZ"))
                 .build();
-        } else {
-            return request.createResponseBuilder(HttpStatus.OK).body("Hello, " + name).build();
         }
     }
 
