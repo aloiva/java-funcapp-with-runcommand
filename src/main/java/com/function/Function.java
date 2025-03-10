@@ -19,11 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Function {
     /**
-     * This function listens at endpoint "/api/HttpExample". Two ways to invoke it using "curl" command in bash:
-     * 1. curl -d "HTTP Body" {your host}/api/HttpExample
-     * 2. curl "{your host}/api/HttpExample?name=HTTP%20Query"
+     * This function listens at endpoint "/api/httptrigger". Two ways to invoke it using "curl" command in bash:
+     * 1. curl -d "HTTP Body" {your host}/api/httptrigger
+     * 2. curl "{your host}/api/httptrigger?name=HTTP%20Query"
      */
-    @FunctionName("HttpExample")
+    @FunctionName("httptrigger")
     public HttpResponseMessage run(
             @HttpTrigger(
                 name = "req",
@@ -80,26 +80,44 @@ public class Function {
         ProcessBuilder processBuilder = null;
         Map<String, String> environment = null;
         try {
-            processBuilder = new ProcessBuilder("bash", "-c", command);
+            processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
             environment = processBuilder.environment();
             environment.putAll(System.getenv());
             process = processBuilder.start();
 
             boolean finished = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
             if (finished) {
-            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-            reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()));
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
             } else {
-            process.destroy();
-            output.append("Command timed out.");
+                process.destroy();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                output.append("Command timed out.");
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            output.append("Command execution was interrupted.");
         } catch (Exception e) {
             output.append("Exception occurred: ").append(e.getMessage());
         } finally {
